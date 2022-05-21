@@ -34,8 +34,19 @@ const loginValidation = () => {
   ];
 };
 
+const thriftGroupValidation = () => {
+  return [
+    check("name", "Name is required").notEmpty(),
+    check("description", "Description is required").notEmpty(),
+    check("startAmount", "startAmount is required").isNumeric(),
+    check("capacity", "maximum capacity is required").isNumeric(),
+    check("isSearchAble", " Is Group searchable?").isBoolean()
+  ];
+};
+
 module.exports = {
   validate,
   registerValidation,
-  loginValidation
+  loginValidation,
+  thriftGroupValidation
 };

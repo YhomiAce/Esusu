@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 require("dotenv").config();
 const express = require("express");
 
@@ -29,18 +30,32 @@ app.get("/", (req, res) => {
 app.use("/api", Routes);
 
 // Handles all errors
-app.use((err, req, res) => {
-  if (process.env.NODE_ENV === "production") {
-    return res.status(err.status || 400).send({ success: false });
+app.use((err, req, res, next) => {
+  try {
+    if (process.env.NODE_ENV === "production") {
+      if (err.status === 412) {
+        return res
+          .status(err.status)
+          .send({ success: false, message: err.message });
+      }
+      return res
+        .status(err.status || 400)
+        .send({ success: false, message: "An error occur" });
+    }
+    return res
+      .status(err.status || 400)
+      .send({ success: false, message: err.message, err });
+  } catch (error) {
+    return res
+      .status(error.status || 400)
+      .send({ success: false, message: error.message });
   }
-  return res
-    .status(err.status || 400)
-    .send({ success: false, message: err.message });
 });
 
-app.use((req, res) =>
-  res.status(404).send({ success: false, message: "Route not found" })
-);
+// Not found route
+app.use((req, res) => {
+  return res.status(404).send({ success: false, message: "Route not found" });
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
