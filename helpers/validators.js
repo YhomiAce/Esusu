@@ -44,9 +44,14 @@ const thriftGroupValidation = () => {
   ];
 };
 
+const joinGroupValidation = () => {
+  return [check("groupId", "Group Id is required").isUUID()];
+};
+
 module.exports = {
   validate,
   registerValidation,
   loginValidation,
-  thriftGroupValidation
+  thriftGroupValidation,
+  joinGroupValidation
 };

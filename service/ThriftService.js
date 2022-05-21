@@ -1,5 +1,6 @@
 const ThriftGroup = require("../models/Thrift");
 const User = require("../models/User");
+const Members = require("../models/Members");
 
 exports.createNewGroup = async (request, transaction) => {
   const group = await ThriftGroup.create(request, { transaction });
@@ -49,9 +50,16 @@ exports.findAllUserGroup = async userId => {
     ],
     include: [
       {
-        model: User,
-        as: "admin",
-        attributes: ["name", "email"]
+        model: Members,
+        as: "group_members",
+        attributes: ["id", "totalAmount", "hasCollect"],
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["name", "email"]
+          }
+        ]
       }
     ]
   });
@@ -103,4 +111,14 @@ exports.SearchForGroup = async conditions => {
     ]
   });
   return groups;
+};
+
+exports.joinAGroup = async (data, transaction) => {
+  const member = await Members.create(data, { transaction });
+  return member;
+};
+
+exports.checkIfMember = async (userId, groupId) => {
+  const member = await Members.findOne({ where: { userId, groupId } });
+  return member;
 };
