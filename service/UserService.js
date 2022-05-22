@@ -13,7 +13,7 @@ exports.findUserById = async id => {
   return user;
 };
 
-exports.createNewUser = async userData => {
-  const user = await User.create(userData);
+exports.createNewUser = async (userData, transaction) => {
+  const user = await User.create(userData, { transaction });
   return user;
 };

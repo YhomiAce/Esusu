@@ -1,41 +1,42 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const sequelize = require("../config/database/connection");
 const UserService = require("../service/UserService");
 
-exports.registerUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    // see if user exist
-    const user = await UserService.findUser(email);
-    if (user) {
-      return res.status(400).send({
-        success: false,
-        message: "This Email already registered on our system"
+exports.registerUser = async (req, res, next) => {
+  sequelize.transaction(async t => {
+    try {
+      const { name, email, password } = req.body;
+      // see if user exist
+      const user = await UserService.findUser(email);
+      if (user) {
+        return res.status(400).send({
+          success: false,
+          message: "This Email already registered on our system"
+        });
+      }
+
+      // Encrypt password
+      const hashPwd = bcrypt.hashSync(password, 10);
+
+      // create user object
+      const newUser = {
+        name,
+        email,
+        password: hashPwd
+      };
+
+      await UserService.createNewUser(newUser, t);
+
+      return res.status(200).send({
+        success: true,
+        message: "User registered successfully"
       });
+    } catch (error) {
+      t.rollbacl();
+      return next(error);
     }
-
-    // Encrypt password
-    const hashPwd = bcrypt.hashSync(password, 10);
-
-    // create user object
-    const newUser = {
-      name,
-      email,
-      password: hashPwd
-    };
-
-    await UserService.createNewUser(newUser);
-
-    return res.status(200).send({
-      success: true,
-      message: "User registered successfully"
-    });
-  } catch (error) {
-    return res.status(500).send({
-      success: false,
-      message: "Server Error"
-    });
-  }
+  });
 };
 
 exports.loginUser = async (req, res) => {

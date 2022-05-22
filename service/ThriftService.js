@@ -72,6 +72,7 @@ exports.findAGroup = async id => {
     attributes: [
       "id",
       "name",
+      "adminId",
       "description",
       "startAmount",
       "capacity",

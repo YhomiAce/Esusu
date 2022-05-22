@@ -48,10 +48,18 @@ const joinGroupValidation = () => {
   return [check("groupId", "Group Id is required").isUUID()];
 };
 
+const invitationValidation = () => {
+  return [
+    check("groupId", "Group Id is required").isUUID(),
+    check("email", "Email is required").isEmail()
+  ];
+};
+
 module.exports = {
   validate,
   registerValidation,
   loginValidation,
   thriftGroupValidation,
-  joinGroupValidation
+  joinGroupValidation,
+  invitationValidation
 };

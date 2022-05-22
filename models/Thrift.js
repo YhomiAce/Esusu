@@ -26,12 +26,22 @@ const ThriftGroup = sequelise.define("thrift_groups", {
     allowNull: true
   },
   capacity: {
-    type: Sequelize.FLOAT,
+    type: Sequelize.INTEGER,
     allowNull: true
   },
   isSearchAble: {
     type: Sequelize.BOOLEAN,
     defaultValue: true
+  },
+  totalAmountSaved: {
+    type: Sequelize.FLOAT,
+    defaultValue: 0,
+    allowNull: true
+  },
+  groupStatus: {
+    type: Sequelize.ENUM("pending", "ongoing", "end"),
+    defaultValue: "pending",
+    allowNull: true
   }
 });
 

@@ -6,6 +6,7 @@ const app = express();
 const cors = require("cors");
 const morgan = require("morgan");
 const http = require("http");
+const cron = require("node-cron");
 
 const server = http.createServer(app);
 require("./config/database/connection");
@@ -55,6 +56,10 @@ app.use((err, req, res, next) => {
 // Not found route
 app.use((req, res) => {
   return res.status(404).send({ success: false, message: "Route not found" });
+});
+
+cron.schedule("*/9 * * * *", () => {
+  console.log("Job Runs");
 });
 
 const PORT = process.env.PORT || 3000;

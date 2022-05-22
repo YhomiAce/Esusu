@@ -31,7 +31,7 @@ module.exports = {
         allowNull: true
       },
       capacity: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
         allowNull: true
       },
       isSearchAble: {

@@ -6,7 +6,8 @@ const Auth = require("../middleware/auth");
 const {
   validate,
   thriftGroupValidation,
-  joinGroupValidation
+  joinGroupValidation,
+  invitationValidation
 } = require("../helpers/validators");
 
 // @route  api/thrift/create-group
@@ -44,5 +45,24 @@ router
 router
   .route("/thrift/join-group")
   .post(joinGroupValidation(), validate, Auth, ThriftController.joinGroup);
+
+// @route  api/thrift/invite
+// @method POST
+// @access private
+// @desc join a group
+router
+  .route("/thrift/group/invitation")
+  .post(
+    invitationValidation(),
+    validate,
+    Auth,
+    ThriftController.sendInvitation
+  );
+
+// @route  api/signup
+// @method POST
+// @access Public
+// @desc register user
+router.route("/thrift/invite-user").post(ThriftController.joinGroupById);
 
 module.exports = router;
