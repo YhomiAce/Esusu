@@ -254,7 +254,7 @@ exports.sendInvitation = async (req, res) => {
     }
 
     const message = `You have been invited to Join ${group.name} on Esusu Confam LTD,
-     by ${user.name}. Click to <a href="${process.env.APP_URL}/invite-user?email=${email}&groupId=${groupId}">Register</a> 
+     by ${user.name}. Click to <a href="${process.env.APP_URL}/api/thrift/invite-user?email=${email}&groupId=${groupId}">Register</a> 
      on platform to get started`;
     const subject = `Invitation to Join ${group.name}`;
 
