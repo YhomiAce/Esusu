@@ -10,8 +10,8 @@ members collects the money at the end of every month.
 </p>
 <p>
     The Application was built with Node js, Express js, Mysql, Sequelize.
-    <span>API Doucmentation URL: https://documenter.getpostman.com/view/10911172/UyxqBNfq</span>
-    <span>Heroku URL: https://esusu-confam-app.herokuapp.com/</span>
+    <li>API Doucmentation URL: https://documenter.getpostman.com/view/10911172/UyxqBNfq</li>
+    <li>Heroku URL: https://esusu-confam-app.herokuapp.com/</li>
 </p>
 
 ### Setup Instructions
