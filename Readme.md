@@ -9,7 +9,9 @@ platform that helps them save a fixed amount automatically every week and then o
 members collects the money at the end of every month.
 </p>
 <p>
-    The Application was built with Node js, Express js, Mysql, Sequelize
+    The Application was built with Node js, Express js, Mysql, Sequelize.
+    <span>API Doucmentation URL: https://documenter.getpostman.com/view/10911172/UyxqBNfq</span>
+    <span>Heroku URL: https://esusu-confam-app.herokuapp.com/</span>
 </p>
 
 ### Setup Instructions
