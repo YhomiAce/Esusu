@@ -1,10 +1,17 @@
+const Sequelize = require("sequelize");
 const ThriftGroup = require("../models/Thrift");
 const User = require("../models/User");
 const Members = require("../models/Members");
+const PayoutSequence = require("../models/PayoutSequence");
 
 exports.createNewGroup = async (request, transaction) => {
   const group = await ThriftGroup.create(request, { transaction });
   return group;
+};
+
+exports.updateGroup = async (data, transaction) => {
+  await ThriftGroup.update(data, { where: { id: data.id }, transaction });
+  return true;
 };
 
 exports.checkForGroup = async name => {
@@ -22,6 +29,8 @@ exports.findAllGroup = async () => {
       "startAmount",
       "capacity",
       "isSearchAble",
+      "groupStatus",
+      "totalAmountSaved",
       "createdAt"
     ],
     include: [
@@ -46,6 +55,8 @@ exports.findAllUserGroup = async userId => {
       "startAmount",
       "capacity",
       "isSearchAble",
+      "groupStatus",
+      "totalAmountSaved",
       "createdAt"
     ],
     include: [
@@ -77,6 +88,8 @@ exports.findAGroup = async id => {
       "startAmount",
       "capacity",
       "isSearchAble",
+      "groupStatus",
+      "totalAmountSaved",
       "createdAt"
     ],
     include: [
@@ -101,6 +114,8 @@ exports.SearchForGroup = async conditions => {
       "startAmount",
       "capacity",
       "isSearchAble",
+      "groupStatus",
+      "totalAmountSaved",
       "createdAt"
     ],
     include: [
@@ -122,4 +137,41 @@ exports.joinAGroup = async (data, transaction) => {
 exports.checkIfMember = async (userId, groupId) => {
   const member = await Members.findOne({ where: { userId, groupId } });
   return member;
+};
+
+exports.fetchAllUserAtRandom = async groupId => {
+  const groups = await Members.findAll({
+    where: { groupId },
+    order: [Sequelize.fn("RAND")]
+  });
+  return groups;
+};
+
+exports.creatPayoutTable = async (request, transaction) => {
+  const table = await PayoutSequence.bulkCreate(request, { transaction });
+  return table;
+};
+
+exports.findAllOngoingGroup = async () => {
+  const groups = await ThriftGroup.findAll({
+    where: { groupStatus: "ongoing" }
+  });
+  return groups;
+};
+
+exports.getAllUserInGroup = async groupId => {
+  const members = await Members.findAll({ where: { groupId } });
+  return members;
+};
+
+exports.updateMemberAmountInGroup = async data => {
+  await Members.update(data, {
+    where: { groupId: data.groupId, userId: data.userId }
+  });
+  return true;
+};
+
+exports.updateAmountSaved = async data => {
+  await ThriftGroup.update(data, { where: { id: data.id } });
+  return true;
 };

@@ -12,6 +12,7 @@ const server = http.createServer(app);
 require("./config/database/connection");
 
 const Routes = require("./routes");
+const GroupService = require("./service/ThriftService");
 
 app.use(morgan("combined"));
 
@@ -58,8 +59,40 @@ app.use((req, res) => {
   return res.status(404).send({ success: false, message: "Route not found" });
 });
 
-cron.schedule("*/9 * * * *", () => {
+cron.schedule("* 6 * * monday", async () => {
   console.log("Job Runs");
+  const groups = await GroupService.findAllOngoingGroup();
+  console.log(groups);
+  await Promise.all(
+    groups.map(async group => {
+      const totalAmountSaved = Number(group.totalAmountSaved);
+      const members = await GroupService.getAllUserInGroup(group.id);
+      console.log(members, "MEMBERS");
+      await Promise.all(
+        members.map(async member => {
+          const totalAmount = Number(member.totalAmount);
+
+          const updatedAmount = totalAmount + Number(group.startAmount);
+          console.log(totalAmount, group.startAmount, updatedAmount);
+          const updatedData = {
+            totalAmount: updatedAmount,
+            groupId: member.groupId,
+            userId: member.userId
+          };
+          await GroupService.updateMemberAmountInGroup(updatedData);
+        })
+      );
+      const newMembers = await GroupService.getAllUserInGroup(group.id);
+      const totalSaved = newMembers.reduce((sum, member) => {
+        return sum + Number(member.totalAmount);
+      }, 0);
+      const data = {
+        id: group.id,
+        totalAmountSaved: totalSaved
+      };
+      await GroupService.updateAmountSaved(data);
+    })
+  );
 });
 
 const PORT = process.env.PORT || 3000;

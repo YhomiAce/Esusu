@@ -18,6 +18,14 @@ router
   .route("/thrift/create-group")
   .post(thriftGroupValidation(), validate, Auth, ThriftController.createGroup);
 
+// @route  api/thrift/start-thrift/:groupId
+// @method PATCH
+// @access private
+// @desc Start group thrift
+router
+  .route("/thrift/start-thrift/:groupId")
+  .patch(Auth, ThriftController.startThrift);
+
 // @route  api/thrift/groups
 // @method Get
 // @access private

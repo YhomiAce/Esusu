@@ -50,6 +50,59 @@ exports.createGroup = async (req, res, next) => {
   });
 };
 
+exports.startThrift = async (req, res, next) => {
+  sequelize.transaction(async t => {
+    try {
+      const { groupId } = req.params;
+      const userId = req.user.id;
+      const group = await GroupService.findAGroup(groupId);
+      const user = await UserService.findUserById(userId);
+      if (!group || !user) {
+        return res.status(404).send({
+          success: false,
+          message: "Invalid group or user"
+        });
+      }
+
+      if (userId !== group.adminId) {
+        return res.status(400).send({
+          success: false,
+          message: "Unauthorised User"
+        });
+      }
+      if (group.groupStatus === "ongoing") {
+        return res.status(200).send({
+          success: true,
+          message: "Group saving is ongoing"
+        });
+      }
+      const data = {
+        id: groupId,
+        groupStatus: "ongoing"
+      };
+
+      await GroupService.updateGroup(data, t);
+      const members = await GroupService.fetchAllUserAtRandom(groupId);
+      const bulkData = members.map((member, i) => {
+        return {
+          groupId,
+          userId: member.userId,
+          sequenceNumber: i + 1
+        };
+      });
+      const payoutTable = await GroupService.creatPayoutTable(bulkData, t);
+      return res.status(200).send({
+        success: true,
+        message: "Thrift Channel has started",
+        payoutTable
+      });
+    } catch (error) {
+      t.rollback();
+      return next(error);
+    }
+  });
+};
+
 exports.findAgroup = async (req, res) => {
   try {
     const { id } = req.params;
@@ -118,6 +171,17 @@ exports.joinGroup = async (req, res, next) => {
   });
 };
 
+exports.checkGroupCapacity = async groupId => {
+  const members = await GroupService.getAllUserInGroup(groupId);
+  const group = await GroupService.findAGroup(groupId);
+  const total = members.length;
+  const capaity = Number(group.capacity);
+  if (capaity >= total) {
+    return false;
+  }
+  return true;
+};
+
 exports.addUserToGroup = async (groupId, userId) => {
   sequelize.transaction(async t => {
     try {
@@ -126,6 +190,11 @@ exports.addUserToGroup = async (groupId, userId) => {
 
       if (!group || !user) {
         return "Invalid Group or User";
+      }
+
+      const isFilled = await this.checkGroupCapacity(groupId);
+      if (isFilled === false) {
+        return "Maximum Capacity reached";
       }
 
       const isMember = await GroupService.checkIfMember(userId, groupId);
