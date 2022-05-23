@@ -184,7 +184,14 @@ exports.updateAmountSaved = async data => {
 exports.findAllGroupPayout = async groupId => {
   const payouts = await PayoutSequence.findAll({
     where: { groupId },
-    order: [["sequenceNumber", "ASC"]]
+    order: [["sequenceNumber", "ASC"]],
+    include: [
+      {
+        model: User,
+        as: "user",
+        attributes: ["name"]
+      }
+    ]
   });
   return payouts;
 };

@@ -67,12 +67,24 @@ router
     ThriftController.sendInvitation
   );
 
-// @route  api/signup
+// @route  api/thrift/invite-user
 // @method POST
 // @access Public
-// @desc register user
+// @desc invite user to join group
 router.route("/thrift/invite-user").post(ThriftController.joinGroupById);
 
+// @route  api/find-max/:groupId
+// @method GET
+// @access Public
+// @desc get the last saved sequence
 router.get("/find-max/:groupId", ThriftController.getMaximumNum);
+
+// @route  api/thrift/thrift/member-group-details
+// @method Get
+// @access private
+// @desc Let members of group access group details and view payout list
+router
+  .route("/thrift/member-group-details/:groupId")
+  .get(Auth, ThriftController.groupDetailsByMember);
 
 module.exports = router;

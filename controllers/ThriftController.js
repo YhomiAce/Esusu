@@ -159,7 +159,7 @@ exports.joinGroup = async (req, res, next) => {
     try {
       const { groupId } = req.body;
       const userId = req.user.id;
-      await this.addUserToGroup(groupId, userId);
+      await this.addUserToGroup({ groupId, userId, transaction: t });
       return res.status(201).send({
         success: true,
         message: "Successfully Joined Group"
@@ -182,48 +182,45 @@ exports.checkGroupCapacity = async groupId => {
   return true;
 };
 
-exports.addUserToGroup = async (groupId, userId) => {
-  sequelize.transaction(async t => {
-    try {
-      const group = await GroupService.findAGroup(groupId);
-      const user = await UserService.findUserById(userId);
+exports.addUserToGroup = async ({ groupId, userId, transaction }) => {
+  try {
+    const group = await GroupService.findAGroup(groupId);
+    const user = await UserService.findUserById(userId);
 
-      if (!group || !user) {
-        return "Invalid Group or User";
-      }
-
-      const isFilled = await this.checkGroupCapacity(groupId);
-      if (isFilled === false) {
-        return "Maximum Capacity reached";
-      }
-
-      const isMember = await GroupService.checkIfMember(userId, groupId);
-      if (isMember) {
-        return "You are already a member of this group";
-      }
-
-      const data = {
-        userId,
-        groupId
-      };
-
-      await GroupService.joinAGroup(data, t);
-      if (group.groupStatus === "ongoing") {
-        const lastNumber = await this.getLastUserSequenceNumber(groupId);
-        const payout = {
-          userId,
-          groupId,
-          sequenceNumber: lastNumber + 1
-        };
-        await GroupService.addUserToPayoutTable(payout, t);
-      }
-      const message = `You have become a part of ${group.name}`;
-      return message;
-    } catch (error) {
-      t.rollback();
-      return error;
+    if (!group || !user) {
+      return "Invalid Group or User";
     }
-  });
+
+    const isFilled = await this.checkGroupCapacity(groupId);
+    if (isFilled === true) {
+      return "Maximum Capacity reached";
+    }
+
+    const isMember = await GroupService.checkIfMember(userId, groupId);
+    if (isMember) {
+      return "You are already a member of this group";
+    }
+
+    const data = {
+      userId,
+      groupId
+    };
+
+    await GroupService.joinAGroup(data, transaction);
+    if (group.groupStatus === "ongoing") {
+      const lastNumber = await this.getLastUserSequenceNumber(groupId);
+      const payout = {
+        userId,
+        groupId,
+        sequenceNumber: lastNumber + 1
+      };
+      await GroupService.addUserToPayoutTable(payout, transaction);
+    }
+    const message = `You have become a part of ${group.name}`;
+    return message;
+  } catch (error) {
+    return error;
+  }
 };
 
 exports.getAllUserGroups = async (req, res) => {
@@ -307,7 +304,7 @@ exports.joinGroupById = async (req, res, next) => {
         const userData = { name, email, password: hashPassword };
         user = await UserService.createNewUser(userData, t);
       }
-      await this.addUserToGroup(groupId, user.id);
+      await this.addUserToGroup({ groupId, userId: user.id, transaction: t });
 
       return res.status(201).send({
         success: true,
@@ -340,6 +337,35 @@ exports.getMaximumNum = async (req, res) => {
     return res.status(500).send({
       success: false,
       error
+    });
+  }
+};
+
+exports.groupDetailsByMember = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const group = await GroupService.findAGroup(groupId);
+    const grouPMembers = await GroupService.getAllUserInGroup(groupId);
+    const groupUserIds = grouPMembers.map(member => member.userId);
+    if (!groupUserIds.includes(req.user.id)) {
+      return res.status(200).send({
+        success: false,
+        message: "You are not a member of this group"
+      });
+    }
+    const members = await GroupService.findAllGroupPayout(groupId);
+    const data = {
+      group,
+      members
+    };
+    return res.status(200).send({
+      success: true,
+      data
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      message: "Server Error"
     });
   }
 };
