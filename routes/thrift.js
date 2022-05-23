@@ -73,4 +73,6 @@ router
 // @desc register user
 router.route("/thrift/invite-user").post(ThriftController.joinGroupById);
 
+router.get("/find-max/:groupId", ThriftController.getMaximumNum);
+
 module.exports = router;

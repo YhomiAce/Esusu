@@ -152,6 +152,11 @@ exports.creatPayoutTable = async (request, transaction) => {
   return table;
 };
 
+exports.addUserToPayoutTable = async (request, transaction) => {
+  const table = await PayoutSequence.create(request, { transaction });
+  return table;
+};
+
 exports.findAllOngoingGroup = async () => {
   const groups = await ThriftGroup.findAll({
     where: { groupStatus: "ongoing" }
@@ -174,4 +179,12 @@ exports.updateMemberAmountInGroup = async data => {
 exports.updateAmountSaved = async data => {
   await ThriftGroup.update(data, { where: { id: data.id } });
   return true;
+};
+
+exports.findAllGroupPayout = async groupId => {
+  const payouts = await PayoutSequence.findAll({
+    where: { groupId },
+    order: [["sequenceNumber", "ASC"]]
+  });
+  return payouts;
 };

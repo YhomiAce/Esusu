@@ -208,6 +208,15 @@ exports.addUserToGroup = async (groupId, userId) => {
       };
 
       await GroupService.joinAGroup(data, t);
+      if (group.groupStatus === "ongoing") {
+        const lastNumber = await this.getLastUserSequenceNumber(groupId);
+        const payout = {
+          userId,
+          groupId,
+          sequenceNumber: lastNumber + 1
+        };
+        await GroupService.addUserToPayoutTable(payout, t);
+      }
       const message = `You have become a part of ${group.name}`;
       return message;
     } catch (error) {
@@ -311,5 +320,26 @@ exports.joinGroupById = async (req, res, next) => {
   });
 };
 
-// add enum field to determine if the thrift has start/ongoing/end/pending
-// cron job to collect weekly payments
+exports.getLastUserSequenceNumber = async groupId => {
+  const payouts = await GroupService.findAllGroupPayout(groupId);
+  const numbers = payouts.map(pay => pay.sequenceNumber);
+  const maximum = Math.max(...numbers);
+  return maximum;
+};
+
+exports.getMaximumNum = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const maximum = await this.getLastUserSequenceNumber(groupId);
+    return res.status(200).send({
+      success: true,
+      maximum,
+      newNum: maximum + 1
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      error
+    });
+  }
+};
